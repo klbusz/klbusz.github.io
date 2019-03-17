@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>channel的使用 | Learning notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="简介channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。 Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对数据区域加锁。因此Go语言中就设计实现了channel这种内置类型来支持并发编程中的数据交换。Go中的channel其实就是一个">
+<meta name="keywords" content="channel,go">
+<meta property="og:type" content="article">
+<meta property="og:title" content="channel的使用">
+<meta property="og:url" content="http://klbusz.github.io/2019/03/02/goLearning-channel/index.html">
+<meta property="og:site_name" content="Learning notes">
+<meta property="og:description" content="简介channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。 Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对数据区域加锁。因此Go语言中就设计实现了channel这种内置类型来支持并发编程中的数据交换。Go中的channel其实就是一个">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-03-16T08:27:51.572Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="channel的使用">
+<meta name="twitter:description" content="简介channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。 Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对数据区域加锁。因此Go语言中就设计实现了channel这种内置类型来支持并发编程中的数据交换。Go中的channel其实就是一个">
+  
+    <link rel="alternate" href="/atom.xml" title="Learning notes" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Learning notes</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://klbusz.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-goLearning-channel" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/03/02/goLearning-channel/" class="article-date">
+  <time datetime="2019-03-02T08:41:25.000Z" itemprop="datePublished">2019-03-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      channel的使用
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <!-- toc -->
+<h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。</p>
+<p>Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对数据区域加锁。因此Go语言中就设计实现了channel这种内置类型来支持并发编程中的数据交换。Go中的channel其实就是一个FIFO的队列，可以在一个gorountinue中写入数据，从另一个gotountine中读取数据。</p>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h2 id="画重点"><a href="#画重点" class="headerlink" title="画重点"></a>画重点</h2><ul>
+<li>channel 和slice、map一样，是引用类型</li>
+<li>无缓冲区channel阻塞性读写</li>
+<li>关闭channel写入panic</li>
+<li>关闭已关闭channel会panic</li>
+<li>关闭值为nil的channel会panic</li>
+<li>for-range读取channel</li>
+<li>select-case读取channel</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>nil channel</th>
+<th>关闭的channel</th>
+<th>未关闭可使用channel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>close</td>
+<td>panic</td>
+<td>panic</td>
+<td>成功关闭</td>
+</tr>
+<tr>
+<td>写 ch&lt;-</td>
+<td>阻塞</td>
+<td>panic</td>
+<td>阻塞或者写入成功(有无可用缓冲区或者读取)</td>
+</tr>
+<tr>
+<td>读 &lt;- ch</td>
+<td>阻塞</td>
+<td>读取零值</td>
+<td>阻塞或者读取成功(有无数据可读)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="声明channel"><a href="#声明channel" class="headerlink" title="声明channel"></a>声明channel</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> chanName <span class="keyword">chan</span> ElementType</span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//双向channel</span></span><br><span class="line"><span class="keyword">var</span> ch <span class="keyword">chan</span> <span class="keyword">int</span> <span class="comment">//可读可写</span></span><br><span class="line"><span class="comment">//只读channel</span></span><br><span class="line"><span class="keyword">var</span> chR &lt;-<span class="keyword">chan</span> <span class="keyword">int</span> </span><br><span class="line"><span class="comment">//只写channel</span></span><br><span class="line"><span class="keyword">var</span> chW <span class="keyword">chan</span>&lt;- <span class="keyword">int</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">	readOnly(ch)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readOnly</span><span class="params">(chR &lt;-<span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">	chR &lt;- <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//编译报错：./test.go:10:6: invalid operation: chR &lt;- 1 (send to receive-only type &lt;-chan int)</span></span><br></pre></td></tr></table></figure>
+<h2 id="创建channel"><a href="#创建channel" class="headerlink" title="创建channel"></a>创建channel</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//不带缓冲区channel</span></span><br><span class="line">ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">0</span>) </span><br><span class="line"></span><br><span class="line"><span class="comment">// 带缓冲区channel</span></span><br><span class="line"></span><br><span class="line">ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">10</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="channel-关闭"><a href="#channel-关闭" class="headerlink" title="channel 关闭"></a>channel 关闭</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">close</span>(ch)</span><br></pre></td></tr></table></figure>
+<p>关闭已关闭的channel会panic</p>
+<p>一般在生产方关闭channel</p>
+<p>关于关闭channel的更多细节，可以看<a href="https://studygolang.com/articles/9478" target="_blank" rel="noopener">如何优雅关闭channel</a></p>
+<h2 id="channel-使用"><a href="#channel-使用" class="headerlink" title="channel 使用"></a>channel 使用</h2><p><strong>cap(ch)</strong></p>
+<p>channel容量 make(chan int,x)中x的值</p>
+<p><strong>len(ch)</strong>  </p>
+<p>channel 中实际元素数目</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span>(<span class="string">"fmt"</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">2</span>)</span><br><span class="line">    c := <span class="built_in">cap</span>(ch)</span><br><span class="line">    ch &lt;- <span class="number">1</span></span><br><span class="line">    l := <span class="built_in">len</span>(ch)</span><br><span class="line">    fmt.Println(c,l)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出 2，1</span></span><br></pre></td></tr></table></figure>
+<p><strong>读写</strong></p>
+<p>写入</p>
+<p><code>ch &lt;- i</code></p>
+<p>读取</p>
+<p><code>v := &lt;- ch</code></p>
+<p><code>v , ok := &lt;- ch</code></p>
+<p>当缓冲区满时，channel写入是阻塞的；当缓冲区为空时，channel的读取也是阻塞的；不带缓冲区的channel对于写入就是缓冲区满，对于读取就是缓冲区空。程序会一直阻塞直到满足读写条件(有数据可读，有缓冲区可写)。</p>
+<p>当channel关闭后，再写入将会panic；</p>
+<p>从关闭的channel中读取，ok值为false，表示channel关闭，v值为channel的元素的零值。因此当循环读取channel值时，可以根据ok的值来判断是否结束循环。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>)</span><br><span class="line">    ch &lt;- <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//输出：fatal error: all goroutines are asleep - deadlock!</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span>(</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">    fmt.Println(time.Now().Unix())</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">        time.Sleep(<span class="number">1</span> * time.Second)</span><br><span class="line">        ch &lt;- <span class="number">1</span></span><br><span class="line">    &#125;(ch)</span><br><span class="line">    &lt;- ch</span><br><span class="line">    fmt.Println(time.Now().Unix())</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出</span></span><br><span class="line"><span class="comment">1551523332</span></span><br><span class="line"><span class="comment">1551523333</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"><span class="keyword">import</span>(</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">        ch &lt;- <span class="number">1</span></span><br><span class="line">        <span class="built_in">close</span>(ch)</span><br><span class="line">    &#125;(ch)</span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">    i := &lt;-ch</span><br><span class="line">    fmt.Println(i) </span><br><span class="line">    i = &lt;-ch</span><br><span class="line">    fmt.Println(i)</span><br><span class="line">    ch &lt;- <span class="number">1</span></span><br><span class="line"></span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出</span></span><br><span class="line"><span class="comment">1</span></span><br><span class="line"><span class="comment">0</span></span><br><span class="line"><span class="comment">panic: send on closed channel</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"><span class="keyword">import</span>(</span><br><span class="line">    <span class="string">"fmt"</span></span><br><span class="line">    <span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">    <span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">        ch &lt;- <span class="number">1</span></span><br><span class="line">        <span class="built_in">close</span>(ch)</span><br><span class="line">    &#125;(ch)</span><br><span class="line">    time.Sleep(time.Second)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//循环读取channel值</span></span><br><span class="line">    <span class="keyword">for</span> &#123;</span><br><span class="line">        v,ok := &lt;- ch</span><br><span class="line">        <span class="keyword">if</span> ok&#123;</span><br><span class="line">            fmt.Println(v)</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        &#125;	</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>for-range</strong></p>
+<p>使用for-range也可以从channel中读取数据，当channel关闭后，会自动结束循环，不再需要我们自己判断</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span>(</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">3</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(ch <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">		ch &lt;- <span class="number">1</span></span><br><span class="line">		ch &lt;- <span class="number">2</span></span><br><span class="line">		ch &lt;- <span class="number">3</span></span><br><span class="line">		<span class="built_in">close</span>(ch)</span><br><span class="line">	&#125;(ch)</span><br><span class="line">	<span class="keyword">for</span> v := <span class="keyword">range</span> ch&#123;</span><br><span class="line">		fmt.Println(v)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>select-case</strong></p>
+<p>select-case用于处理存在多个case的情况。case 后的语句只能是对channel的读写操作，所有case对应的语句会依次自上而下、自左向右执行，判断是阻塞和操作成功。若所有的case都阻塞，且没有default语句，则select阻塞，若有default则会执行default代码块。当存在多个可执行case，则会从随机选取一个执行；只要擦存在可执行的非阻塞case，则不会执行default。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span>(</span><br><span class="line">	<span class="string">"fmt"</span></span><br><span class="line">	<span class="string">"time"</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	ch1 := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">	ch2 := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">	<span class="keyword">go</span> <span class="function"><span class="keyword">func</span><span class="params">(ch1,ch2 <span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">		ch1 &lt;- <span class="number">1</span></span><br><span class="line">	&#125;(ch1,ch2)</span><br><span class="line">	time.Sleep(time.Second)</span><br><span class="line">	<span class="keyword">select</span>&#123;</span><br><span class="line">	<span class="keyword">case</span> v1 := &lt;- ch1:</span><br><span class="line">		fmt.Println(v1)</span><br><span class="line">	<span class="keyword">case</span> v2 := &lt;- ch2:</span><br><span class="line">		fmt.Println(v2)</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">		fmt.Println(<span class="string">"default"</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="http://go101.org/article/channel.html" target="_blank" rel="noopener">http://go101.org/article/channel.html</a></li>
+<li><a href="https://studygolang.com/articles/9532" target="_blank" rel="noopener">https://studygolang.com/articles/9532</a></li>
+<li><a href="https://www.jianshu.com/p/2a1146dc42c3" target="_blank" rel="noopener">https://www.jianshu.com/p/2a1146dc42c3</a></li>
+<li><a href="https://studygolang.com/articles/9478" target="_blank" rel="noopener">https://studygolang.com/articles/9478</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://klbusz.github.io/2019/03/02/goLearning-channel/" data-id="cjtb8jkhv00007wb3iaj209zy" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/channel/">channel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/03/03/goLearning-channel-code-read/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          golang channel源码阅读
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/02/28/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/channel/">channel</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/go/">go</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/map/">map</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/channel/" style="font-size: 15px;">channel</a> <a href="/tags/go/" style="font-size: 20px;">go</a> <a href="/tags/map/" style="font-size: 10px;">map</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/03/">三月 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/02/">二月 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/03/16/goLearning-map-and-code/">Golang map使用与源码阅读</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/03/goLearning-channel-code-read/">golang channel源码阅读</a>
+          </li>
+        
+          <li>
+            <a href="/2019/03/02/goLearning-channel/">channel的使用</a>
+          </li>
+        
+          <li>
+            <a href="/2019/02/28/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 klbusz<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
