@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="Learning notes">
 <meta property="og:description" content="简介 使用 画重点 声明channel 创建channel channel 关闭 channel 使用   参考     简介channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。 Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-20T12:51:01.594Z">
+<meta property="og:updated_time" content="2019-03-20T13:16:10.069Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="channel的使用">
 <meta name="twitter:description" content="简介 使用 画重点 声明channel 创建channel channel 关闭 channel 使用   参考     简介channel是Go语言的重要特性，和goroutine配合使用，使得Go语言的并发编程变得方便和有趣。 Go语言之父Rob Pike说过：不要通过共享内存来通信，要通过通信来共享内存。如果通过共享内存来交换数据，为了避免数据竞争(data race),我们就需要对">
@@ -146,6 +146,7 @@
 </tr>
 </tbody>
 </table>
+<a id="more"></a>
 <h2><span id="声明channel">声明channel</span></h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> chanName <span class="keyword">chan</span> ElementType</span><br></pre></td></tr></table></figure>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//双向channel</span></span><br><span class="line"><span class="keyword">var</span> ch <span class="keyword">chan</span> <span class="keyword">int</span> <span class="comment">//可读可写</span></span><br><span class="line"><span class="comment">//只读channel</span></span><br><span class="line"><span class="keyword">var</span> chR &lt;-<span class="keyword">chan</span> <span class="keyword">int</span> </span><br><span class="line"><span class="comment">//只写channel</span></span><br><span class="line"><span class="keyword">var</span> chW <span class="keyword">chan</span>&lt;- <span class="keyword">int</span></span><br></pre></td></tr></table></figure>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> main</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">main</span><span class="params">()</span></span>&#123;</span><br><span class="line">	ch := <span class="built_in">make</span>(<span class="keyword">chan</span> <span class="keyword">int</span>,<span class="number">1</span>)</span><br><span class="line">	readOnly(ch)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">readOnly</span><span class="params">(chR &lt;-<span class="keyword">chan</span> <span class="keyword">int</span>)</span></span>&#123;</span><br><span class="line">	chR &lt;- <span class="number">1</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//编译报错：./test.go:10:6: invalid operation: chR &lt;- 1 (send to receive-only type &lt;-chan int)</span></span><br></pre></td></tr></table></figure>
@@ -188,7 +189,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://klbusz.github.io/2019/03/02/goLearning-channel/" data-id="cjth7glk70000wwb3iiixfdyr" class="article-share-link">Share</a>
+      <a data-url="http://klbusz.github.io/2019/03/02/goLearning-channel/" data-id="cjth862b40001q0b3k4xrn0yl" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/channel/">channel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li></ul>
@@ -285,7 +286,8 @@
 </aside>
         
       </div>
-      <footer id="footer">
+      <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<footer id="footer">
   
   <div class="outer">
     <div id="footer-info" class="inner">
@@ -293,11 +295,8 @@
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
-  <span id="busuanzi_container_site_uv"> 
-    本站访客数<span id="busuanzi_value_site_uv"></span>人次
-  </span>
 </footer>
-<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
     </div>
     <nav id="mobile-nav">
   

@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="Learning notes">
 <meta property="og:description" content="源码位置 channel 结构体 channel 创建 channel 关闭 channel len &amp;amp; cap channel 写 channel 读     源码位置 代码基于Go1.12 runtime/chan.go runtime/select.go runtime/runtime2.go cmd/compile/internal/gc/walk.go  channel">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-16T08:27:51.571Z">
+<meta property="og:updated_time" content="2019-03-20T13:16:25.394Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="golang channel源码阅读">
 <meta name="twitter:description" content="源码位置 channel 结构体 channel 创建 channel 关闭 channel len &amp;amp; cap channel 写 channel 读     源码位置 代码基于Go1.12 runtime/chan.go runtime/select.go runtime/runtime2.go cmd/compile/internal/gc/walk.go  channel">
@@ -110,6 +110,7 @@
 <li>cmd/compile/internal/gc/walk.go</li>
 </ul>
 <h1><span id="channel-结构体">channel 结构体</span></h1><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//runtime/chan.go</span></span><br><span class="line"><span class="keyword">type</span> hchan <span class="keyword">struct</span> &#123;</span><br><span class="line">    qcount   <span class="keyword">uint</span>           <span class="comment">// total data in the queue len() 实际缓存数据大小</span></span><br><span class="line">    dataqsiz <span class="keyword">uint</span>           <span class="comment">// size of the circular queue  cap() 缓存区大小</span></span><br><span class="line">    buf      unsafe.Pointer <span class="comment">// points to an array of dataqsiz elements //缓冲区地址</span></span><br><span class="line">    elemsize <span class="keyword">uint16</span></span><br><span class="line">    closed   <span class="keyword">uint32</span>    <span class="comment">//？为什么要是uint32  对齐？  </span></span><br><span class="line">    elemtype *_type <span class="comment">// element type</span></span><br><span class="line">    sendx    <span class="keyword">uint</span>   <span class="comment">// send index</span></span><br><span class="line">    recvx    <span class="keyword">uint</span>   <span class="comment">// receive index</span></span><br><span class="line">    recvq    waitq  <span class="comment">// list of recv waiters </span></span><br><span class="line">    sendq    waitq  <span class="comment">// list of send waiters</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// lock protects all fields in hchan, as well as several</span></span><br><span class="line">    <span class="comment">// fields in sudogs blocked on this channel.</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="comment">// Do not change another G's status while holding this lock</span></span><br><span class="line">    <span class="comment">// (in particular, do not ready a G), as this can deadlock</span></span><br><span class="line">    <span class="comment">// with stack shrinking.</span></span><br><span class="line">    lock mutex</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
 <p>管理等待读写协程的队列(双向链表)</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> waitq <span class="keyword">struct</span> &#123;</span><br><span class="line">    first *sudog</span><br><span class="line">    last  *sudog</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>等待队列</p>
@@ -133,7 +134,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://klbusz.github.io/2019/03/03/goLearning-channel-code-read/" data-id="cjth7gllb0007wwb3l1zg4uur" class="article-share-link">Share</a>
+      <a data-url="http://klbusz.github.io/2019/03/03/goLearning-channel-code-read/" data-id="cjth862bz0007q0b3sw41jl8q" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/channel/">channel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li></ul>
@@ -230,7 +231,8 @@
 </aside>
         
       </div>
-      <footer id="footer">
+      <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<footer id="footer">
   
   <div class="outer">
     <div id="footer-info" class="inner">
@@ -238,11 +240,8 @@
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
-  <span id="busuanzi_container_site_uv"> 
-    本站访客数<span id="busuanzi_value_site_uv"></span>人次
-  </span>
 </footer>
-<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
     </div>
     <nav id="mobile-nav">
   

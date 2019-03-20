@@ -7,18 +7,18 @@
   
   <title>Golang map使用与源码阅读 | Learning notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 花重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的    123456789101">
+  <meta name="description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 画重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的">
 <meta name="keywords" content="go,map">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Golang map使用与源码阅读">
 <meta property="og:url" content="http://klbusz.github.io/2019/03/16/goLearning-map-and-code/index.html">
 <meta property="og:site_name" content="Learning notes">
-<meta property="og:description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 花重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的    123456789101">
+<meta property="og:description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 画重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-17T10:49:54.097Z">
+<meta property="og:updated_time" content="2019-03-20T13:16:00.733Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Golang map使用与源码阅读">
-<meta name="twitter:description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 花重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的    123456789101">
+<meta name="twitter:description" content="map的使用 map源码阅读 代码来源 常量定义 map的结构 map的创建 map 增加元素 map 元素访问 map 元素删除 map 的迭代器 map的清除 map的扩容 扩容流程     参考     map的使用 画重点 map是引用类型 map的遍历顺序是随机的 map元素不可寻址 key值一定是可比较的(可理解为支持==) map不是并发安全的">
   
     <link rel="alternate" href="/atom.xml" title="Learning notes" type="application/atom+xml">
   
@@ -114,7 +114,7 @@
 </div>
 
 <h1><span id="map的使用">map的使用</span></h1><ul>
-<li>花重点<ul>
+<li>画重点<ul>
 <li>map是引用类型</li>
 <li>map的遍历顺序是随机的</li>
 <li>map元素不可寻址</li>
@@ -123,6 +123,7 @@
 </ul>
 </li>
 </ul>
+<a id="more"></a>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//声明,此时 m值为nil，字节赋值会panic</span></span><br><span class="line"><span class="keyword">var</span> m <span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span></span><br><span class="line"><span class="comment">//初始化</span></span><br><span class="line">m = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>)</span><br><span class="line"><span class="comment">//带大小初始化，使用较少</span></span><br><span class="line">m = <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="keyword">string</span>]<span class="keyword">string</span>,<span class="number">5</span>)</span><br><span class="line"><span class="comment">//初始化赋值</span></span><br><span class="line">m1 := <span class="keyword">map</span>[<span class="keyword">int</span>]<span class="keyword">int</span>&#123;</span><br><span class="line">    <span class="number">1</span>:<span class="number">1</span>,</span><br><span class="line">    <span class="number">2</span>:<span class="number">2</span>,</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//添加元素</span></span><br><span class="line">m[<span class="string">"a"</span>] = <span class="string">"a"</span></span><br><span class="line"><span class="comment">//获取元素 一个返回值</span></span><br><span class="line"><span class="comment">//当key不存在时，返回value对应类型的零值</span></span><br><span class="line">b := m[<span class="string">"a"</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">//获取元素 两个返回值,当ok为true时，表示key存在</span></span><br><span class="line"><span class="keyword">if</span> b1,ok := m[<span class="string">"a"</span>];ok&#123;</span><br><span class="line">    fmt.Println(b1)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//遍历map，与插入顺序无关</span></span><br><span class="line"><span class="keyword">for</span> k, v := <span class="keyword">range</span> m&#123;</span><br><span class="line">    fmt.Println(k,v)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//修改元素</span></span><br><span class="line">m[<span class="string">"a"</span>] = <span class="string">"c"</span></span><br><span class="line"><span class="comment">//删除元素</span></span><br><span class="line"><span class="built_in">delete</span>(m,<span class="string">"a"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">//查看map大小</span></span><br><span class="line">l := <span class="built_in">len</span>(m)</span><br></pre></td></tr></table></figure>
 <h1><span id="map源码阅读">map源码阅读</span></h1><h2><span id="代码来源">代码来源</span></h2><ul>
 <li>代码基于Go1.12</li>
@@ -162,7 +163,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://klbusz.github.io/2019/03/16/goLearning-map-and-code/" data-id="cjth7gllj000awwb3eyrbm2yl" class="article-share-link">Share</a>
+      <a data-url="http://klbusz.github.io/2019/03/16/goLearning-map-and-code/" data-id="cjth862cm000aq0b3kdee6cay" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/map/">map</a></li></ul>
@@ -250,7 +251,8 @@
 </aside>
         
       </div>
-      <footer id="footer">
+      <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<footer id="footer">
   
   <div class="outer">
     <div id="footer-info" class="inner">
@@ -258,11 +260,8 @@
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
-  <span id="busuanzi_container_site_uv"> 
-    本站访客数<span id="busuanzi_value_site_uv"></span>人次
-  </span>
 </footer>
-<script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
     </div>
     <nav id="mobile-nav">
   
