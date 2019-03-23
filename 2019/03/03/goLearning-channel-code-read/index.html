@@ -8,14 +8,14 @@
   <title>golang channel源码阅读 | Learning notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="源码位置 channel 结构体 channel 创建 channel 关闭 channel len &amp;amp; cap channel 写 channel 读     源码位置 代码基于Go1.12 runtime/chan.go runtime/select.go runtime/runtime2.go cmd/compile/internal/gc/walk.go  channel">
-<meta name="keywords" content="channel,go">
+<meta name="keywords" content="go,channel">
 <meta property="og:type" content="article">
 <meta property="og:title" content="golang channel源码阅读">
 <meta property="og:url" content="http://klbusz.github.io/2019/03/03/goLearning-channel-code-read/index.html">
 <meta property="og:site_name" content="Learning notes">
 <meta property="og:description" content="源码位置 channel 结构体 channel 创建 channel 关闭 channel len &amp;amp; cap channel 写 channel 读     源码位置 代码基于Go1.12 runtime/chan.go runtime/select.go runtime/runtime2.go cmd/compile/internal/gc/walk.go  channel">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-20T13:16:25.394Z">
+<meta property="og:updated_time" content="2019-03-23T11:09:16.734Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="golang channel源码阅读">
 <meta name="twitter:description" content="源码位置 channel 结构体 channel 创建 channel 关闭 channel len &amp;amp; cap channel 写 channel 读     源码位置 代码基于Go1.12 runtime/chan.go runtime/select.go runtime/runtime2.go cmd/compile/internal/gc/walk.go  channel">
@@ -134,7 +134,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://klbusz.github.io/2019/03/03/goLearning-channel-code-read/" data-id="cjth862bz0007q0b3sw41jl8q" class="article-share-link">Share</a>
+      <a data-url="http://klbusz.github.io/2019/03/03/goLearning-channel-code-read/" data-id="cjtlh0clq0001fgb3858n5wkg" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/channel/">channel</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/go/">go</a></li></ul>
@@ -231,8 +231,7 @@
 </aside>
         
       </div>
-      <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-<footer id="footer">
+      <footer id="footer">
   
   <div class="outer">
     <div id="footer-info" class="inner">
